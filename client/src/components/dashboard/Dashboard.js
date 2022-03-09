@@ -20,6 +20,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Container from '../container/Container';
+import io from 'socket.io-client';
 
 import './style.css';
 
@@ -70,9 +71,46 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end'
 }));
 
+///Dashbord
+
 const Dashboard = function ({ auth }) {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+
+  const [student_id_to_name, set_student_id_to_name] = React.useState({});
+
+  var socket = io.connect('http://localhost:8080'),
+    /*student_id_to_name = new Map(),*/
+    name_to_student_id = new Map(),
+    user_id;
+
+  React.useEffect(() => {
+    socket.on('user-added', function (data) {
+      if (data.name === auth.user.name) {
+        user_id = data.id;
+        console.log('my id: ' + user_id);
+      } else {
+        if (auth.user.role == 'Instructor') {
+          if (!name_to_student_id.has(data.name)) {
+            console.log('here');
+            //student_id_to_name.set(data.id, data.name);
+
+            set_student_id_to_name({
+              ...student_id_to_name,
+              [data.id]: data.name
+            });
+            name_to_student_id.set(data.name, data.id);
+            console.log(student_id_to_name);
+          }
+        }
+      }
+    });
+    if (auth.user) {
+      //console.log('here1');
+      //if (user_id === null || user_id === undefined)
+      socket.emit('add-user', auth.user.name);
+    }
+  }, []);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -129,31 +167,23 @@ const Dashboard = function ({ auth }) {
             </IconButton>
           </DrawerHeader>
           <Divider />
+
           <List>
-            {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-              <ListItem button key={text}>
-                <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItem>
-            ))}
-          </List>
-          <Divider />
-          <List>
-            {['All mail', 'Trash', 'Spam'].map((text, index) => (
-              <ListItem button key={text}>
-                <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItem>
-            ))}
+            {Object.keys(student_id_to_name).map(function (key) {
+              return (
+                <ListItem button key={key}>
+                  <ListItemIcon>
+                    <MailIcon />
+                  </ListItemIcon>
+                  <ListItemText primary={student_id_to_name[key]} />
+                </ListItem>
+              );
+            })}
           </List>
         </Drawer>
         <Main open={open}>
           <DrawerHeader />
-          <Container />
+          <Container socket={socket} user_id={user_id} />
         </Main>
       </Box>
     </div>

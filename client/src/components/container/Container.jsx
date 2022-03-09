@@ -1,65 +1,57 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import Board from '../board/Board';
 
 import './style.css';
+const Container = ({ auth, sentProps }) => {
+  const [color, setColor] = React.useState('#000000');
+  const [size, setSize] = React.useState('5');
 
-class Container extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      color: '#000000',
-      size: '5'
-    };
-  }
-
-  changeColor(params) {
-    this.setState({
-      color: params.target.value
-    });
-  }
-
-  changeSize(params) {
-    this.setState({
-      size: params.target.value
-    });
-  }
-
-  render() {
-    return (
-      <div className="container">
-        <div className="tools-section">
-          <div className="color-picker-container">
-            Select Brush Color : &nbsp;
-            <input
-              type="color"
-              value={this.state.color}
-              onChange={this.changeColor.bind(this)}
-            />
-          </div>
-
-          <div className="brushsize-container">
-            Select Brush Size : &nbsp;
-            <select
-              value={this.state.size}
-              onChange={this.changeSize.bind(this)}
-            >
-              <option> 5 </option>
-              <option> 10 </option>
-              <option> 15 </option>
-              <option> 20 </option>
-              <option> 25 </option>
-              <option> 30 </option>
-            </select>
-          </div>
+  return (
+    <div className="container">
+      <div className="tools-section">
+        <div className="color-picker-container">
+          Select Brush Color : &nbsp;
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+          />
         </div>
 
-        <div className="board-container">
-          <Board color={this.state.color} size={this.state.size}></Board>
+        <div className="brushsize-container">
+          Select Brush Size : &nbsp;
+          <select value={size} onChange={(e) => setSize(e.target.value)}>
+            <option> 5 </option>
+            <option> 10 </option>
+            <option> 15 </option>
+            <option> 20 </option>
+            <option> 25 </option>
+            <option> 30 </option>
+          </select>
         </div>
       </div>
-    );
-  }
-}
 
-export default Container;
+      <div className="board-container">
+        <Board
+          color={color}
+          size={size}
+          socket={sentProps.socket}
+          user_id={sentProps.user_id}
+        ></Board>
+      </div>
+    </div>
+  );
+};
+
+Container.propTypes = {
+  auth: PropTypes.object.isRequired
+};
+
+const mapStateToProps = (state, ownProps) => ({
+  auth: state.auth,
+  sentProps: ownProps
+});
+
+export default connect(mapStateToProps, undefined)(Container);

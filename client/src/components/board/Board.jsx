@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import io from 'socket.io-client';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
@@ -7,19 +6,17 @@ import './style.css';
 
 const Board = ({ auth, sentProps }) => {
   var timeout,
-    socket = io.connect('http://localhost:8080'),
     user_id,
     isEmitting = false,
     ctx,
     isDrawing = false,
-    hasInput = false,
-    student_id_to_name = new Map();
+    hasInput = false;
 
   useEffect(() => {
     //console.log(auth);
     //console.log(sentProps.color);
     drawOnCanvas();
-    socket.on('canvas-data', function (data) {
+    sentProps.socket.on('canvas-data', function (data) {
       var root = this;
       var interval = setInterval(function () {
         if (isDrawing) return;
@@ -36,25 +33,10 @@ const Board = ({ auth, sentProps }) => {
         image.src = data;
       }, 50);
     });
-    socket.on('user-added', function (data) {
-      if (data.name === auth.user.name) {
-        user_id = data.id;
-        console.log('my id: ' + user_id);
-      } else {
-        if (auth.user.role == 'Instructor') {
-          student_id_to_name[data.id] = data.name;
-          console.log(student_id_to_name);
-        }
-      }
-    });
-    if (auth.user) {
-      //console.log('here1');
-      //if (user_id === null || user_id === undefined)
-      socket.emit('add-user', auth.user.name);
-    }
 
     ctx.strokeStyle = sentProps.color;
     ctx.lineWidth = sentProps.size;
+    user_id = sentProps.user_id;
   });
 
   const drawOnCanvas = () => {
@@ -116,7 +98,7 @@ const Board = ({ auth, sentProps }) => {
       if (auth.user && auth.user.role === 'Instructor') {
         timeout = setTimeout(function () {
           var base64ImageData = canvas.toDataURL('image/png');
-          socket.emit('canvas-data', base64ImageData);
+          sentProps.socket.emit('canvas-data', base64ImageData);
         }, 50);
       }
     };
@@ -137,7 +119,7 @@ const Board = ({ auth, sentProps }) => {
         if (auth.user && auth.user.role === 'Instructor') {
           timeout = setTimeout(function () {
             var base64ImageData = canvas.toDataURL('image/png');
-            socket.emit('canvas-data', base64ImageData);
+            sentProps.socket.emit('canvas-data', base64ImageData);
           }, 50);
         }
       }
