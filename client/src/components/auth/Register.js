@@ -4,6 +4,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { setAlert } from '../../actions/alert';
 import { register } from '../../actions/auth';
 import PropTypes from 'prop-types';
+import './style.css';
 
 const Register = ({ setAlert, register, isAuthenticated }) => {
   const [formData, setFormData] = useState({
@@ -46,6 +47,7 @@ const Register = ({ setAlert, register, isAuthenticated }) => {
             name="name"
             value={name}
             onChange={onChange}
+            style={{ width: '400px' }}
           />
         </div>
         <div className="form-group">
@@ -55,6 +57,7 @@ const Register = ({ setAlert, register, isAuthenticated }) => {
             name="email"
             value={email}
             onChange={onChange}
+            style={{ width: '400px' }}
           />
           <small className="form-text">
             This site uses Gravatar so if you want a profile image, use a
@@ -68,6 +71,7 @@ const Register = ({ setAlert, register, isAuthenticated }) => {
             name="password"
             value={password}
             onChange={onChange}
+            style={{ width: '400px' }}
           />
         </div>
         <div className="form-group">
@@ -77,10 +81,16 @@ const Register = ({ setAlert, register, isAuthenticated }) => {
             name="password2"
             value={password2}
             onChange={onChange}
+            style={{ width: '400px' }}
           />
         </div>
         <div className="form-group">
-          <select name="role" value={role} onChange={onChange}>
+          <select
+            name="role"
+            value={role}
+            onChange={onChange}
+            style={{ width: '400px' }}
+          >
             <option>Student</option>
             <option>Instructor</option>
           </select>

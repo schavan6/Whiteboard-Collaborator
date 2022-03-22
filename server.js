@@ -30,6 +30,10 @@ io.on('connection', (socket) => {
     user_added.id = uuid();
     io.emit('user-added', user_added);
   });
+  socket.on('connect-student', (data) => {
+    console.log('in server: ' + data);
+    io.emit('connect-student', data);
+  });
 });
 
 // Connect Database

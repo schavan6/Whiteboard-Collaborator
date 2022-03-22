@@ -78,33 +78,35 @@ const Dashboard = function ({ auth }) {
   const [open, setOpen] = React.useState(false);
 
   const [student_id_to_name, set_student_id_to_name] = React.useState({});
-
+  const [user_id, set_user_id] = React.useState('');
   var socket = io.connect('http://localhost:8080'),
     /*student_id_to_name = new Map(),*/
-    name_to_student_id = new Map(),
-    user_id;
+    name_to_student_id = new Map();
 
   React.useEffect(() => {
-    socket.on('user-added', function (data) {
-      if (data.name === auth.user.name) {
-        user_id = data.id;
-        console.log('my id: ' + user_id);
-      } else {
-        if (auth.user.role == 'Instructor') {
-          if (!name_to_student_id.has(data.name)) {
-            console.log('here');
-            //student_id_to_name.set(data.id, data.name);
+    socket.on(
+      'user-added',
+      function (data) {
+        if (data.name === auth.user.name) {
+          set_user_id(data.id);
+        } else {
+          if (auth.user.role == 'Instructor') {
+            if (!name_to_student_id.has(data.name)) {
+              console.log('here');
+              //student_id_to_name.set(data.id, data.name);
 
-            set_student_id_to_name({
-              ...student_id_to_name,
-              [data.id]: data.name
-            });
-            name_to_student_id.set(data.name, data.id);
-            console.log(student_id_to_name);
+              set_student_id_to_name({
+                ...student_id_to_name,
+                [data.id]: data.name
+              });
+              name_to_student_id.set(data.name, data.id);
+              console.log(student_id_to_name);
+            }
           }
         }
-      }
-    });
+      },
+      []
+    );
     if (auth.user) {
       //console.log('here1');
       //if (user_id === null || user_id === undefined)
@@ -138,6 +140,10 @@ const Dashboard = function ({ auth }) {
     } else {
       return <div></div>;
     }
+  };
+
+  const onItemClick = (key) => {
+    socket.emit('connect-student', key);
   };
 
   return (
@@ -175,11 +181,20 @@ const Dashboard = function ({ auth }) {
                   <ListItemIcon>
                     <MailIcon />
                   </ListItemIcon>
-                  <ListItemText primary={student_id_to_name[key]} />
+                  <ListItemText
+                    primary={student_id_to_name[key]}
+                    onClick={() => onItemClick(key)}
+                  />
                 </ListItem>
               );
             })}
           </List>
+          <Divider />
+          <ul>
+            {Object.keys(student_id_to_name).map(function (key) {
+              <li>{student_id_to_name[key]}</li>;
+            })}
+          </ul>
         </Drawer>
         <Main open={open}>
           <DrawerHeader />

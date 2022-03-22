@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
@@ -7,12 +7,14 @@ import './style.css';
 const Board = ({ auth, sentProps }) => {
   var timeout,
     user_id,
-    isEmitting = false,
     ctx,
     isDrawing = false,
     hasInput = false;
 
+  const [isEmitting, setIsEmitting] = useState(false);
+
   useEffect(() => {
+    console.log(isEmitting);
     //console.log(auth);
     //console.log(sentProps.color);
     drawOnCanvas();
@@ -37,6 +39,14 @@ const Board = ({ auth, sentProps }) => {
     ctx.strokeStyle = sentProps.color;
     ctx.lineWidth = sentProps.size;
     user_id = sentProps.user_id;
+
+    sentProps.socket.on('connect-student', function (data) {
+      if (user_id === data) {
+        console.log(user_id);
+        console.log(data);
+        setIsEmitting(true);
+      }
+    });
   });
 
   const drawOnCanvas = () => {
@@ -95,7 +105,7 @@ const Board = ({ auth, sentProps }) => {
       ctx.stroke();
       //console.log('props ' + root.props.auth.user.role);
       if (timeout !== undefined) clearTimeout(timeout);
-      if (auth.user && auth.user.role === 'Instructor') {
+      if ((auth.user && auth.user.role === 'Instructor') || isEmitting) {
         timeout = setTimeout(function () {
           var base64ImageData = canvas.toDataURL('image/png');
           sentProps.socket.emit('canvas-data', base64ImageData);
@@ -116,7 +126,7 @@ const Board = ({ auth, sentProps }) => {
         hasInput = false;
 
         if (timeout !== undefined) clearTimeout(timeout);
-        if (auth.user && auth.user.role === 'Instructor') {
+        if ((auth.user && auth.user.role === 'Instructor') || isEmitting) {
           timeout = setTimeout(function () {
             var base64ImageData = canvas.toDataURL('image/png');
             sentProps.socket.emit('canvas-data', base64ImageData);

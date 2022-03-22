@@ -38,6 +38,7 @@ const Login = ({ login, isAuthenticated }) => {
             name="email"
             value={email}
             onChange={onChange}
+            style={{ width: '400px' }}
           />
         </div>
         <div className="form-group">
@@ -48,6 +49,7 @@ const Login = ({ login, isAuthenticated }) => {
             value={password}
             onChange={onChange}
             minLength="6"
+            style={{ width: '400px' }}
           />
         </div>
         <input type="submit" className="btn btn-primary" value="Login" />
