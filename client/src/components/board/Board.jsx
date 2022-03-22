@@ -8,15 +8,14 @@ const Board = ({ auth, sentProps }) => {
   var timeout,
     user_id,
     ctx,
-    isDrawing = false,
-    hasInput = false;
+    isDrawing = false;
+  //hasInput = false;
+
+  const [hasInput, setHasInput] = React.useState(false);
 
   const [isEmitting, setIsEmitting] = useState(false);
 
   useEffect(() => {
-    console.log(isEmitting);
-    //console.log(auth);
-    //console.log(sentProps.color);
     drawOnCanvas();
     sentProps.socket.on('canvas-data', function (data) {
       var root = this;
@@ -47,7 +46,7 @@ const Board = ({ auth, sentProps }) => {
         setIsEmitting(true);
       }
     });
-  });
+  }, [sentProps.color]);
 
   const drawOnCanvas = () => {
     var canvas = document.querySelector('#board');
@@ -96,7 +95,6 @@ const Board = ({ auth, sentProps }) => {
       false
     );
 
-    var root = this;
     var onPaint = function () {
       ctx.beginPath();
       ctx.moveTo(last_mouse.x, last_mouse.y);
@@ -122,16 +120,12 @@ const Board = ({ auth, sentProps }) => {
           parseInt(this.style.left, 10),
           parseInt(this.style.top, 10)
         );
-        document.body.removeChild(this);
-        hasInput = false;
 
-        if (timeout !== undefined) clearTimeout(timeout);
-        if ((auth.user && auth.user.role === 'Instructor') || isEmitting) {
-          timeout = setTimeout(function () {
-            var base64ImageData = canvas.toDataURL('image/png');
-            sentProps.socket.emit('canvas-data', base64ImageData);
-          }, 50);
-        }
+        document.body.removeChild(this);
+        setHasInput(false);
+
+        var base64ImageData = canvas.toDataURL('image/png');
+        sentProps.socket.emit('canvas-data', base64ImageData);
       }
     };
 
@@ -156,19 +150,19 @@ const Board = ({ auth, sentProps }) => {
       document.body.appendChild(input);
 
       input.focus();
-
-      hasInput = true;
+      setHasInput(true);
     };
 
     canvas.addEventListener(
       'dblclick',
       function (e) {
-        if (hasInput) return;
-        addInput(e.clientX, e.clientY);
+        e.preventDefault();
+        if (!hasInput) addInput(e.clientX, e.clientY);
       },
       false
     );
   };
+
   return (
     <div className="sketch" id="sketch">
       <canvas className="board" id="board"></canvas>
