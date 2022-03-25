@@ -4,7 +4,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import MailIcon from '@mui/icons-material/Mail';
-import PropTypes from 'prop-types';
+import PropTypes, { object } from 'prop-types';
 import { connect } from 'react-redux';
 import Container from '../container/Container';
 import io from 'socket.io-client';
@@ -16,20 +16,20 @@ const socket = io.connect('http://localhost:8080');
 const Dashboard = function ({ auth }) {
   const [student_id_to_name, set_student_id_to_name] = React.useState({});
   const [user_id, set_user_id] = React.useState('');
-  var name_to_student_id = new Map();
 
   const socketCallBack = (data) => {
     if (auth.user && data.name === auth.user.name) {
       set_user_id(data.id);
     } else {
       if (auth.user && auth.user.role == 'Instructor') {
-        if (!name_to_student_id.has(data.name)) {
+        if (
+          !Object.values(student_id_to_name).find((name) => name === data.name)
+        ) {
           console.log('Calling Socket', student_id_to_name);
           set_student_id_to_name({
             ...student_id_to_name,
             [data.id]: data.name
           });
-          name_to_student_id.set(data.name, data.id);
         }
       }
     }
