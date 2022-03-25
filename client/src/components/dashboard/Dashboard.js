@@ -19,7 +19,6 @@ const Dashboard = function ({ auth }) {
   var name_to_student_id = new Map();
 
   const socketCallBack = (data) => {
-    // console.log('On user Addedd ', auth.user, data);
     if (auth.user && data.name === auth.user.name) {
       set_user_id(data.id);
     } else {
@@ -32,38 +31,13 @@ const Dashboard = function ({ auth }) {
           });
           name_to_student_id.set(data.name, data.id);
         }
-        //console.log('SC ', student_id_to_name);
-        //console.log('TV', name_to_student_id);
       }
     }
   };
 
   React.useEffect(() => {
     if (auth.user) {
-      socket.on(
-        'user-added',
-        socketCallBack,
-        // function (data) {
-        //   // console.log('On user Addedd ', auth.user, data);
-        //   if (auth.user && data.name === auth.user.name) {
-        //     set_user_id(data.id);
-        //   } else {
-        //     if (auth.user && auth.user.role == 'Instructor') {
-        //       if (!name_to_student_id.has(data.name)) {
-        //         console.log('Calling Socket', student_id_to_name);
-        //         set_student_id_to_name({
-        //           ...student_id_to_name,
-        //           [data.id]: data.name
-        //         });
-        //         name_to_student_id.set(data.name, data.id);
-        //       }
-        //       //console.log('SC ', student_id_to_name);
-        //       //console.log('TV', name_to_student_id);
-        //     }
-        //   }
-        // },
-        []
-      );
+      socket.on('user-added', socketCallBack, []);
       if (auth.user) {
         socket.emit('add-user', auth.user.name);
       }
