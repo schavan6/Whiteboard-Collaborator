@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { styled, useTheme } from '@mui/material/styles';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -12,47 +11,70 @@ import io from 'socket.io-client';
 import SplitPane, { Pane } from 'react-split-pane';
 import './style.css';
 
-///Dashbord
-
+//Dashbord
+const socket = io.connect('http://localhost:8080');
 const Dashboard = function ({ auth }) {
   const [student_id_to_name, set_student_id_to_name] = React.useState({});
   const [user_id, set_user_id] = React.useState('');
-  var socket = io.connect('http://localhost:8080'),
-    name_to_student_id = new Map();
+  var name_to_student_id = new Map();
+
+  const socketCallBack = (data) => {
+    // console.log('On user Addedd ', auth.user, data);
+    if (auth.user && data.name === auth.user.name) {
+      set_user_id(data.id);
+    } else {
+      if (auth.user && auth.user.role == 'Instructor') {
+        if (!name_to_student_id.has(data.name)) {
+          console.log('Calling Socket', student_id_to_name);
+          set_student_id_to_name({
+            ...student_id_to_name,
+            [data.id]: data.name
+          });
+          name_to_student_id.set(data.name, data.id);
+        }
+        //console.log('SC ', student_id_to_name);
+        //console.log('TV', name_to_student_id);
+      }
+    }
+  };
 
   React.useEffect(() => {
-    socket.on(
-      'user-added',
-      function (data) {
-        if (data.name === auth.user.name) {
-          set_user_id(data.id);
-        } else {
-          if (auth.user.role == 'Instructor') {
-            if (!name_to_student_id.has(data.name)) {
-              console.log('here');
-
-              set_student_id_to_name({
-                ...student_id_to_name,
-                [data.id]: data.name
-              });
-              name_to_student_id.set(data.name, data.id);
-              console.log(student_id_to_name);
-            }
-          }
-        }
-      },
-      []
-    );
     if (auth.user) {
-      socket.emit('add-user', auth.user.name);
+      socket.on(
+        'user-added',
+        socketCallBack,
+        // function (data) {
+        //   // console.log('On user Addedd ', auth.user, data);
+        //   if (auth.user && data.name === auth.user.name) {
+        //     set_user_id(data.id);
+        //   } else {
+        //     if (auth.user && auth.user.role == 'Instructor') {
+        //       if (!name_to_student_id.has(data.name)) {
+        //         console.log('Calling Socket', student_id_to_name);
+        //         set_student_id_to_name({
+        //           ...student_id_to_name,
+        //           [data.id]: data.name
+        //         });
+        //         name_to_student_id.set(data.name, data.id);
+        //       }
+        //       //console.log('SC ', student_id_to_name);
+        //       //console.log('TV', name_to_student_id);
+        //     }
+        //   }
+        // },
+        []
+      );
+      if (auth.user) {
+        socket.emit('add-user', auth.user.name);
+      }
     }
-  }, []);
+  }, [auth.user, student_id_to_name]);
 
   const onItemClick = (key) => {
     socket.emit('connect-student', key);
   };
   const getPaneWidth = () => {
-    if (auth.user.role == 'Instructor') {
+    if (auth.user && auth.user.role == 'Instructor') {
       return '80%';
     }
     return 0;
@@ -60,8 +82,14 @@ const Dashboard = function ({ auth }) {
   return (
     <div>
       <SplitPane split="vertical" defaultSize={getPaneWidth()} primary="second">
-        {auth.user.role == 'Instructor' && (
+        {auth.user && auth.user.role == 'Instructor' && (
           <List>
+            <ListItem button key={user_id}>
+              <ListItemIcon>
+                <MailIcon />
+              </ListItemIcon>
+              <ListItemText primary="Me" onClick={() => onItemClick(user_id)} />
+            </ListItem>
             {Object.keys(student_id_to_name).map(function (key) {
               return (
                 <ListItem button key={key}>
