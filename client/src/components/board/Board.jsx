@@ -15,15 +15,20 @@ const Board = ({ auth, sentProps }) => {
 
   const [isEmitting, setIsEmitting] = useState(false);
 
+  const [canvasState, setCanvasState] = useState('');
+
   useEffect(() => {
     drawOnCanvas();
+    reloadCanvas();
     sentProps.socket.on('canvas-data', function (data) {
       var root = this;
       var interval = setInterval(function () {
         if (isDrawing) return;
         isDrawing = true;
         clearInterval(interval);
-        var image = new Image();
+        setCanvasState(data);
+        //reloadCanvas();
+        /*var image = new Image();
         var canvas = document.querySelector('#board');
         var ctx = canvas.getContext('2d');
         image.onload = function () {
@@ -31,7 +36,7 @@ const Board = ({ auth, sentProps }) => {
 
           isDrawing = false;
         };
-        image.src = data;
+        image.src = data;*/
       }, 50);
     });
 
@@ -44,7 +49,19 @@ const Board = ({ auth, sentProps }) => {
         setIsEmitting(true);
       }
     });
-  }, [sentProps.color, isEmitting, sentProps.user_id]);
+  }, [sentProps.color, isEmitting, sentProps.user_id, canvasState]);
+
+  const reloadCanvas = () => {
+    var image = new Image();
+    var canvas = document.querySelector('#board');
+    var ctx = canvas.getContext('2d');
+    image.onload = function () {
+      ctx.drawImage(image, 0, 0);
+
+      isDrawing = false;
+    };
+    image.src = canvasState;
+  };
 
   const drawOnCanvas = () => {
     var canvas = document.querySelector('#board');

@@ -16,6 +16,7 @@ const socket = io.connect('http://localhost:8080');
 const Dashboard = function ({ auth }) {
   const [student_id_to_name, set_student_id_to_name] = React.useState({});
   const [user_id, set_user_id] = React.useState('');
+  const [connectToInstructor, setConnectToInstructor] = React.useState(false);
 
   const socketCallBack = (data) => {
     if (auth.user && data.name === auth.user.name) {
@@ -45,13 +46,20 @@ const Dashboard = function ({ auth }) {
   }, [auth.user, student_id_to_name]);
 
   const onItemClick = (key) => {
-    socket.emit('connect-student', key);
+    if (auth.user) {
+      if (auth.user.role == 'Instructor') {
+        socket.emit('connect-student', key);
+      } else {
+        if (key === 'instructor') {
+          setConnectToInstructor(true);
+        } else if (key === 'me') {
+          setConnectToInstructor(false);
+        }
+      }
+    }
   };
   const getPaneWidth = () => {
-    if (auth.user && auth.user.role == 'Instructor') {
-      return '80%';
-    }
-    return 0;
+    return '80%';
   };
   return (
     <div>
@@ -79,7 +87,30 @@ const Dashboard = function ({ auth }) {
             })}
           </List>
         )}
-        <Container socket={socket} user_id={user_id} />
+        {auth.user && auth.user.role == 'Student' && (
+          <List>
+            <ListItem button key={'instructor'}>
+              <ListItemIcon>
+                <MailIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Instructor"
+                onClick={() => onItemClick('instructor')}
+              />
+            </ListItem>
+            <ListItem button key={'me'}>
+              <ListItemIcon>
+                <MailIcon />
+              </ListItemIcon>
+              <ListItemText primary="Me" onClick={() => onItemClick('me')} />
+            </ListItem>
+          </List>
+        )}
+        <Container
+          socket={socket}
+          user_id={user_id}
+          connectToInstructor={connectToInstructor}
+        />
       </SplitPane>
     </div>
   );
