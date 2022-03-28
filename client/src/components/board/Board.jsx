@@ -41,12 +41,10 @@ const Board = ({ auth, sentProps }) => {
 
     sentProps.socket.on('connect-student', function (data) {
       if (user_id === data) {
-        console.log(user_id);
-        console.log(data);
         setIsEmitting(true);
       }
     });
-  }, [sentProps.color]);
+  }, [sentProps.color, isEmitting, sentProps.user_id]);
 
   const drawOnCanvas = () => {
     var canvas = document.querySelector('#board');
@@ -125,7 +123,9 @@ const Board = ({ auth, sentProps }) => {
         setHasInput(false);
 
         var base64ImageData = canvas.toDataURL('image/png');
-        sentProps.socket.emit('canvas-data', base64ImageData);
+        if ((auth.user && auth.user.role === 'Instructor') || isEmitting) {
+          sentProps.socket.emit('canvas-data', base64ImageData);
+        }
       }
     };
 
